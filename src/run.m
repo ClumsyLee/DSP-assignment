@@ -1,3 +1,3 @@
 load '../data/data.mat'
 
-dis = cal_dis(data(:, [end, end - 1]));
+grid = interp_temp(data(:, [end end-1]), data(:, 2:end-2), 10, 3.5, 10);
