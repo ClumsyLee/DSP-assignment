@@ -1,20 +1,22 @@
-function temp_grid = interp_temp(pos, temp, interval, alpha, desired_stations)
-    len = size(pos, 1);
-
-    min_xy = min(pos);
-    max_xy = max(pos);
-
-    grid_size = fliplr(ceil((max_xy - min_xy) / interval) + [1 1]);
-    w_mat = zeros(prod(grid_size), len);
+function weight_mat = interp_temp(pos, temp, alpha, desired_stations)
+    stations = size(pos, 1);
+    weight_mat = zeros(stations, stations - 1);
 
     % Calculate weight matrix.
-    k = 1;
+    for station = 1:stations
+        range = (1:stations ~= station);
+        x = pos(station, 1);
+        y = pos(station, 2);
+        w = weight(pos(range, :), [x y], alpha, desired_stations)';
+        weight_mat(station, :) = w;
+
+    end
+
     for kx = 1:grid_size(2)
         x = min_xy(1) + interval * (kx - 1);
         for ky = 1:grid_size(1)
             y = min_xy(2) + interval * (ky - 1);
 
-            w_mat(k, :) = weight(pos, temp, [x y], alpha, desired_stations)';
             w_mat(k, :) = w_mat(k, :) / sum(w_mat(k, :));  % Normalize.
             k = k + 1;
         end
@@ -28,7 +30,7 @@ function temp_grid = interp_temp(pos, temp, interval, alpha, desired_stations)
     end
 end
 
-function w = weight(pos, temp, pred_pos, alpha, desired_stations)
+function w = weight(pos, pred_pos, alpha, desired_stations)
     len = size(pos, 1);
     w = zeros(len, 1);
 
