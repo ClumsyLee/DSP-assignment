@@ -1,6 +1,10 @@
 % Connect k-nearest neighbors.
-function adj_mat = cal_adj_mat(dis, k)
+function adj_mat = cal_adj_mat(dis, k, method)
     len = size(dis, 1);
+
+    if strcmp(method, 'nearest')
+        k = 1;
+    end
 
     % Keep k entries for each row.
     for row = 1:len
@@ -11,16 +15,19 @@ function adj_mat = cal_adj_mat(dis, k)
         dis(row, :) = this_row;
     end
 
-    adj_mat = exp(-dis.^2);
+    switch method
+    case 'nearest'
+        adj_mat = dis;
+    case 'gauss'
+        adj_mat = exp(-dis.^2);
+    case 'inverse'
+        adj_mat = 1 ./ dis;
+    case 'inverse-squared'
+        adj_mat = 1 ./ (dis.^2);
+    end
+
     adj_mat(dis == 0) = 0;
 
-    row_sum = sum(adj_mat')';
-
-    for row = 1:len
-        for col = 1:len
-            if adj_mat(row, col) ~= 0
-                adj_mat(row, col) = adj_mat(row, col) / sqrt(row_sum(row) * row_sum(col));
-            end
-        end
-    end
+    row_sum = sum(adj_mat, 2);
+    adj_mat = adj_mat ./ repmat(row_sum, [1 len]);
 end
